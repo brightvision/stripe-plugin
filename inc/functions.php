@@ -24,7 +24,7 @@ function rt_loggedout_stripe_payment(){
 	$existing_user = email_exists($email);
 	if($existing_user) die("email_exists");
   
-  if(!class_exists("\Stripe\Stripe")) require( 'stripe/Stripe.php' );
+  if(!class_exists("Stripe")) require( 'stripe/Stripe.php' );
 	Stripe::setApiKey(rt_get_stripe_secret_key());
   // Get the credit card details submitted by the form
 	$token = $tkn['id'];
@@ -44,7 +44,7 @@ function rt_loggedout_stripe_payment(){
     elseif(!empty($cpn_chk->used_on)) die("Coupon code already used by ".$cpn_chk->used_by." on ".date("m/d/y",$cpn_chk->used_on));
     }
  $customer = Stripe::create_customer($new_customer);
-     \Stripe\Charge::create_charge(array(
+     Charge::create_charge(array(
         "amount" => $cpn_chk->code?$discounted_amount*100:$amount*100,
         "currency" => "usd",
         "customer" => $customer->id,
@@ -54,7 +54,7 @@ function rt_loggedout_stripe_payment(){
 	$new_customer['plan']=$plan;
 		if($coupon!='' && strlen($coupon) > 0) {
           try {
-                $coupon_chk = \Stripe\Coupon::get_coupon($coupon); //check coupon exists
+                $coupon_chk = Coupon::get_coupon($coupon); //check coupon exists
                 if($coupon_chk !== NULL) {
                  $coupon_usable = true; //set to true our coupon exists or take the coupon id if you wanted to.
                 }
@@ -69,7 +69,7 @@ function rt_loggedout_stripe_payment(){
     if(isset($cp_err_msg)) die($cp_err_msg);
   
     if(isset($coupon_usable)) $new_customer['coupon']=$coupon;
-	$customer = \Stripe\Customer::create($new_customer);
+	$customer = Customer::create($new_customer);
   
   }
   
@@ -138,12 +138,12 @@ add_action("wp_ajax_rt_stripe_payment","rt_stripe_payment");
 function rt_stripe_payment(){
 	global $current_user;
 	extract($_POST);
-	if(!class_exists("\Stripe\Stripe")) require( 'stripe/Stripe.php' );
+	if(!class_exists("Stripe")) require( 'stripe/Stripe.php' );
 	Stripe::setApiKey(rt_get_stripe_secret_key());
 	$token = $tkn['id'];
 	if($coupon!='' && strlen($coupon) > 0) {
           try {
-                $coupon_chk = \Stripe\Coupon::retrieve($coupon); //check coupon exists
+                $coupon_chk = Coupon::retrieve($coupon); //check coupon exists
                 if($coupon_chk !== NULL) {
                  $coupon_usable = true; //set to true our coupon exists or take the coupon id if you wanted to.
                 }
@@ -159,7 +159,7 @@ function rt_stripe_payment(){
 	if(!empty($cid)){
      //if($plan=="culturepass") die("You already have a subscription.");
 		try {
-		$customer = \Stripe\Customer::retrieve($cid);
+		$customer = Customer::retrieve($cid);
     $customer->source = $token; 
 		$customer->save(); 
 		$exis_customer=array("plan" => $plan);
@@ -180,7 +180,7 @@ function rt_stripe_payment(){
     if($plan=="culturepass") unset($new_customer['plan']);
 	if(isset($coupon_usable)) $new_customer['coupon']=$coupon;
 	
-	$customer = \Stripe\Customer::create($new_customer);	
+	$customer = Customer::create($new_customer);	
 	$detals=array("customer_id"=>$customer->id,
 		"time"=>$customer->created,
 		"email"=>$customer->email,
@@ -215,14 +215,14 @@ add_action("wp_ajax_rt_stripe_update_card","rt_stripe_update_card");
 function rt_stripe_update_card(){
 	global $current_user;
 	extract($_POST);
-	if(!class_exists("\Stripe\Stripe")) require( 'stripe/Stripe.php' );
-	\Stripe\Stripe::setApiKey(rt_get_stripe_secret_key());
+	if(!class_exists("Stripe")) require( 'stripe/Stripe.php' );
+	Stripe::setApiKey(rt_get_stripe_secret_key());
 	$token = $tkn['id'];
 	
 	$cid=rt_stripe_customer_key();
 	if(!empty($cid)){
 		try{
-		$customer = \Stripe\Customer::retrieve($cid);
+		$customer = Customer::retrieve($cid);
 		$customer->source = $token; 
 		$customer->save();
 		} catch (Exception $e) {}
@@ -238,9 +238,9 @@ function rushtix_my_account(){
 	$cid=rt_stripe_customer_key();
 	if(!empty($cid)){
 	require( 'stripe/Stripe.php' );
-	\Stripe\Stripe::setApiKey(rt_get_stripe_secret_key());
+	Stripe::setApiKey(rt_get_stripe_secret_key());
 	try{
-	$customer = \Stripe\Customer::retrieve($cid);
+	$customer = Customer::retrieve($cid);
 	$plan=$customer->subscriptions->data;
 	$cur_plan=$plan[0]->plan;
 	} catch (Exception $e) {}
@@ -265,11 +265,11 @@ function get_custom_stripe_account($user_id=false){
   else $cid=rt_stripe_customer_key();
   
 	if(!empty($cid)){
-		if(!class_exists("\Stripe\Stripe")) require( 'stripe/Stripe.php' );
+		if(!class_exists("Stripe")) require( 'stripe/Stripe.php' );
 		
-		\Stripe\Stripe::setApiKey(rt_get_stripe_secret_key());
+		Stripe::setApiKey(rt_get_stripe_secret_key());
 		try{
-		$customer = \Stripe\Customer::retrieve($cid);
+		$customer = Customer::retrieve($cid);
 		$plan=$customer->subscriptions->data;
 		} catch (Exception $e) {
 	        // an exception was caught, so the code is invalid
@@ -288,11 +288,11 @@ function get_stripe_customer_coupon($user_id=false){
   else $cid=rt_stripe_customer_key();
   
 	if(!empty($cid)){
-		if(!class_exists("\Stripe\Stripe")) require( 'stripe/Stripe.php' );
+		if(!class_exists("Stripe")) require( 'stripe/Stripe.php' );
 		
-		\Stripe\Stripe::setApiKey(rt_get_stripe_secret_key());
+		Stripe::setApiKey(rt_get_stripe_secret_key());
 		try{
-		$customer = \Stripe\Customer::retrieve($cid);
+		$customer = Customer::retrieve($cid);
 		} catch (Exception $e) {
 	        // an exception was caught, so the code is invalid
 	        $cp_err_msg = $e->getMessage();
@@ -310,11 +310,11 @@ function get_stripe_customer_next_invoice($user_id=false){
   else $cid=rt_stripe_customer_key();
   
 	if(!empty($cid)){
-		if(!class_exists("\Stripe\Stripe")) require( 'stripe/Stripe.php' );
+		if(!class_exists("Stripe")) require( 'stripe/Stripe.php' );
 		
 		Stripe::setApiKey(rt_get_stripe_secret_key());
 		try{
-		$customer_inv =\Stripe\Invoice::upcoming(array("customer" =>$cid));
+		$customer_inv =Invoice::upcoming(array("customer" =>$cid));
       
 		} catch (Exception $e) {
 	        // an exception was caught, so the code is invalid
@@ -474,10 +474,10 @@ function rt_update_user_profile(){
 
 	$cid=rt_stripe_customer_key();
 	if(!empty($cid)){
-		if(!class_exists("\Stripe\Stripe")) require( 'stripe/Stripe.php' );
-		\Stripe\Stripe::setApiKey(rt_get_stripe_secret_key());
+		if(!class_exists("Stripe")) require( 'stripe/Stripe.php' );
+		Stripe::setApiKey(rt_get_stripe_secret_key());
 		try{
-			$customer = \Stripe\Customer::retrieve($cid);
+			$customer = Customer::retrieve($cid);
 			$customer->email = $email; 
 			$customer->description = "RushTix Customer: ". $name;
 			$customer->save();
@@ -508,10 +508,10 @@ function rt_stripe_cancel_plan(){
 			if($plan==$group->name)
 			Groups_User_Group::delete($current_user->ID, $group->group_id);
 			}}
-	if(!class_exists("\Stripe\Stripe")) require( 'stripe/Stripe.php' );
-	\Stripe\Stripe::setApiKey(rt_get_stripe_secret_key());
+	if(!class_exists("Stripe")) require( 'stripe/Stripe.php' );
+	Stripe::setApiKey(rt_get_stripe_secret_key());
 	try{
-	$cu = \Stripe\Customer::retrieve($cus);
+	$cu = Customer::retrieve($cus);
 	$cu->subscriptions->retrieve($subid)->cancel();
 	} catch (Exception $e) {}
 	echo "Subscription Cancelled Successfully!";

@@ -1,10 +1,10 @@
 <?php 
-add_action( 'wp_header', 'rushtix_popups_html' );
+add_action( 'wp_head', 'rushtix_popups_html' );
 
 // This function output all the html for pop-ups
 function rushtix_popups_html() {
 	 global $current_user; ?>
-<div style="display:none;">
+<div style="display:block;">
 	<div id="single-event-lightbox" class="single-event-lightbox mfp-hide">
 	  <div id="buddypress">
 	    <div class="full-evt-pg">
